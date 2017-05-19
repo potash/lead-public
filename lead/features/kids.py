@@ -12,7 +12,9 @@ import logging
 
 def revise_kid_addresses(date):
         kid_addresses_filename = os.path.join(
-                os.path.dirname(__file__), 'kid_addresses.sql')
+                os.path.dirname(os.path.dirname(__file__)),
+                'output',
+                'kid_addresses.sql')
         kid_addresses = Revise(sql=kid_addresses_filename,
                 id_column=['kid_id', 'address_id'], 
                 max_date_column='address_max_date', 
@@ -21,14 +23,15 @@ def revise_kid_addresses(date):
                 date=date)
 
         kids_filename = os.path.join(
-                os.path.dirname(__file__), 'kids.sql')
+                os.path.dirname(os.path.dirname(__file__)),
+                'output',
+                'kids.sql')
         kids = Revise(sql=kids_filename, 
                 id_column='kid_id', 
                 max_date_column = 'max_date', 
                 min_date_column='min_date', 
                 date_column='date',
-                date=date, 
-                from_sql_args={'to_str':['first_name','last_name']})
+                date=date)
         
         for i in kid_addresses.inputs: i.target = True
         for i in kids.inputs: i.target = True
