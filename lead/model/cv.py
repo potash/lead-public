@@ -23,8 +23,22 @@ def lead_data(month, day, wic_lag):
 
 
 class LeadCrossValidate(Step):
+    """
+    This step takes the output of LeadData and prepares it
+    for modeling by selecting a training and test set and
+    auxillary features used for evaluation.
+    """
     def __init__(self, month, day, year, train_years, 
             wic_lag=None, train_query=None):
+        """
+        Args:
+            month: the month of the train-test split
+            day: the day of the train-test split
+            year: the year of the train-test split
+            train_years: the number of training years
+            wic_lag: an optional lag for the wic data, in days
+            train_query: an optional additional query for training
+        """
         Step.__init__(self,
                 month=month, day=day, year=year, 
                 train_years=train_years,
@@ -39,6 +53,12 @@ class LeadCrossValidate(Step):
         self.inputs = [lead_data(month, day, wic_lag), kid_addresses_revised]
 
     def run(self, revised, X, aux):
+        """
+        Args:
+            revised: auxillary informtaion revised for the train-test date
+            X: the full feature matrix from LeadData
+            aux: the unrevised auxillary data from LeadData
+        """
         logging.info('Splitting train and test sets')
         today = util.timestamp(self.year, self.month, self.day)
         min_date = util.timestamp(self.year - self.train_years, self.month, self.day)

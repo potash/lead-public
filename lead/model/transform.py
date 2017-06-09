@@ -7,8 +7,19 @@ import logging
 
 
 class LeadTransform(Step):
+    """
+    This Step transforms the data for modeling by defining an outcome variable,
+    performing feature selection and creating sample weights.
+    """
     def __init__(self, outcome_expr, aggregations,
             wic_sample_weight=1, exclude=[], include=[]):
+        """
+        Args:
+            outcome_expr: the query to perform on the auxillary information to produce an outcome variable
+            aggregations: defines which of the SpacetimeAggregations to include
+            and which to drop
+            wic_sample_weight: optional different sample weight for wic kids
+        """
         Step.__init__(self, 
                 outcome_expr=outcome_expr,
                 aggregations=aggregations,
@@ -16,6 +27,14 @@ class LeadTransform(Step):
                 exclude=exclude, include=include)
 
     def run(self, X, aux, train, test):
+        """
+        Args:
+            X: full feature matrix, including both training and test sets
+            aux: auxillary information, aligned with X
+            train: boolean series to mask training, aligned with X
+            test: boolean series to mask testing, aligned with X
+
+        """
         y = aux.eval(self.outcome_expr)
 
         logging.info('Selecting aggregations')
