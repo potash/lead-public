@@ -61,6 +61,7 @@ class LeadData(Step):
         X['age'] = ((aux.date - aux.date_of_birth)/util.day).astype(self.dtype)
         X['date_of_birth_days'] = util.date_to_days(aux.date_of_birth).astype(self.dtype)
         X['date_of_birth_month'] = aux.date_of_birth.dt.month.astype(self.dtype)
+        X['male'] = (aux.sex == 'M').astype(self.dtype)
         X['wic'] = (aux.first_wic_date < aux.date).fillna(False).astype(self.dtype)
 
         X.set_index(index_columns, inplace=True)
