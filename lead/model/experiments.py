@@ -1,12 +1,12 @@
 from .workflows import *
 
-def model_svm():
+def bll6_svm():
     return models(model.svms())
 
-def model_forests():
+def bll6_forests():
     return bll6_models(model.forests(n_estimators=[800], balanced=[True], random_state=0))
 
-def model_logits():
+def bll6_logits():
     return bll6_models(model.logits())
 
 # annual, quarterly, and monthly random forest models
