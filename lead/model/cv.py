@@ -42,7 +42,8 @@ class LeadCrossValidate(Step):
         Step.__init__(self,
                 month=month, day=day, year=year, 
                 train_years=train_years,
-                wic_lag=wic_lag)
+                wic_lag=wic_lag,
+                train_query=train_query)
 
         if not YEAR_MIN <= year <= YEAR_MAX:
             raise ValueError('Invalid year: %s' % year)
