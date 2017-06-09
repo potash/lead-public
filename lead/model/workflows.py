@@ -129,6 +129,7 @@ def models(estimators, cv_search, transform_search):
    
         cv = lead.model.cv.LeadCrossValidate(**cv_args)
         cv.name = 'cv'
+        cv.target = True
 
         transform = lead.model.transform.LeadTransform(inputs=[cv], **transform_args)
         transform.name = 'transform'
