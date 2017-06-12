@@ -33,8 +33,7 @@ def bll6_forest_today():
 
     # put the predictions into the database
     tosql = data.ToSQL(table_name='predictions', if_exists='replace', 
-            inputs=[p], 
-            inputs_mapping=[{'y':'df', 'feature_importances':None}, 'db'])
+            inputs=[MapResults(p, mapping=[{'y':'df', 'feature_importances':None}, 'db'])])
     tosql.target = True
     return tosql
 
@@ -90,7 +89,7 @@ def bll6_models(estimators, cv_search={}, transform_search={}):
 
     """
     cvd = dict(
-        year = range(2010, 2015+1),
+        year = range(2010, 2014+1),
         month = 1,
         day = 1,
         train_years = [6],

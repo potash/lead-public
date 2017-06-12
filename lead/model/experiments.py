@@ -177,9 +177,7 @@ def product_models(estimators, transform_search = {}):
             t.get_input('transform').name = 'transform_t'
 
         for t,b in product(ts, bs):
-            
-            p = model.PredictProduct(inputs=[t,b], 
-                        inputs_mapping=['test', 'bll6'])
+            p = model.PredictProduct(MapResults([t,b], ['test', 'bll6']))
             p.target = True
             steps.append(p)
             

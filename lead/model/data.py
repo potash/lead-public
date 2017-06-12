@@ -1,4 +1,4 @@
-from drain.step import Step, Call
+from drain.step import Step, Call, MapResults
 from drain import util, data
 from drain.data import FromSQL, Merge
 from drain.aggregation import SpacetimeAggregationJoin
@@ -34,15 +34,14 @@ class LeadData(Step):
         self.aggregation_joins = []
         for name, a in self.aggregations.items():
             aj = SpacetimeAggregationJoin(
-                    inputs=[left, a], 
-                    lag=wic_lag if name.startswith('wic') else None,
-                    inputs_mapping=[{'aux':None}, 'aggregation'])
+                    inputs=[a, MapResults([left], {'aux':None})],
+                    lag=wic_lag if name.startswith('wic') else None)
             aj = Call("astype", inputs=[aj], dtype=dtype)
             aj.target = True
             self.aggregation_joins.append(aj)
 
-        self.inputs = [acs, left] + self.aggregation_joins
-        self.inputs_mapping=['acs', {}] + [None]*len(self.aggregations)
+        self.inputs = [MapResults([acs, left] + self.aggregation_joins,
+                                 ['acs', {}] + [None]*len(self.aggregations))]
 
     def run(self, acs, left, aux):
         # join all aggregations
