@@ -1,1 +1,1 @@
-![Pipeline Graph](model/model.png)
+![Pipeline Graph](model.png)
