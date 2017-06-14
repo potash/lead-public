@@ -5,6 +5,8 @@ import pandas as pd
 import numpy as np
 import logging
 
+from lead.model.data import LeadData
+
 
 class LeadTransform(Step):
     """
@@ -40,7 +42,7 @@ class LeadTransform(Step):
         y = aux.eval(self.outcome_expr)
 
         logging.info('Selecting aggregations')
-        aggregations = self.inputs[0].inputs[0].aggregations # dictionary of Aggregations
+        aggregations = self.get_input(LeadData).aggregations
         for a, args in self.aggregations.iteritems():
             X = aggregations[a].select(X, args, inplace=True)
 

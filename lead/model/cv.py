@@ -84,9 +84,6 @@ class LeadCrossValidate(Step):
         logging.info('Binarizing')
         X = data.binarize(X, ['community_area_id', 'ward_id'], astype=np.float32)
         
-        logging.info('Imputing')
-        X = data.impute(X, train=train)
-
         c = data.non_numeric_columns(X)
         if len(c) > 0:
             logging.warning('Non-numeric columns: %s' % c)

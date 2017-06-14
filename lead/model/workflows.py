@@ -1,5 +1,6 @@
-from drain import data, step, model, util
+from drain import data, step, model, data
 from drain.util import dict_product
+from drain.step import Call, Construct, MapResults
 
 from itertools import product
 import pandas as pd
@@ -17,6 +18,7 @@ def bll6_forest():
     """
     return bll6_models(forest())
 
+
 def bll6_forest_today():
     """
     The workflow used to construct a current model
@@ -25,14 +27,14 @@ def bll6_forest_today():
     today = pd.Timestamp(os.environ['TODAY'])
     p = bll6_models(
             forest(),
-            dict(year=today.year, 
+            dict(year=today.year,
                  month=today.month,
                  day=today.day))[0]
     # save the model
     p.get_input('fit').target = True
 
     # put the predictions into the database
-    tosql = data.ToSQL(table_name='predictions', if_exists='replace', 
+    tosql = data.ToSQL(table_name='predictions', if_exists='replace',
             inputs=[MapResults(p, mapping=[{'y':'df', 'feature_importances':None}, 'db'])])
     tosql.target = True
     return tosql
@@ -48,9 +50,6 @@ def bll6_forest_quick():
                  month=today.month,
                  day=today.day,
                  train_years=1))[0]
-    # save the model
-    p.get_input('cv').target = True
-    p.get_input('fit').target = True
     return p
 
 
@@ -89,18 +88,18 @@ def bll6_models(estimators, cv_search={}, transform_search={}):
 
     """
     cvd = dict(
-        year = range(2010, 2014+1),
-        month = 1,
-        day = 1,
-        train_years = [6],
-        train_query = [None],
+        year=range(2010, 2014+1),
+        month=1,
+        day=1,
+        train_years=[6],
+        train_query=[None],
     )
     cvd.update(cv_search)
 
     transformd = dict(
-        wic_sample_weight = [0],
-        aggregations = aggregations.args,
-        outcome_expr = ['max_bll0 >= 6']
+        wic_sample_weight=[0],
+        aggregations=aggregations.args,
+        outcome_expr=['max_bll0 >= 6']
     )
     transformd.update(transform_search)
     return models(estimators, cvd, transformd)
@@ -130,7 +129,18 @@ def models(estimators, cv_search, transform_search):
         cv.name = 'cv'
         cv.target = True
 
-        transform = lead.model.transform.LeadTransform(inputs=[cv], **transform_args)
+        X_train = Call('__getitem__', inputs=[MapResults([cv], {'X':'obj', 'train':'key', 
+                                                       'test':None, 'aux':None})])
+        mean = Call('mean', inputs=[X_train])
+
+        X_impute = Construct(data.impute, 
+                             inputs=[MapResults([cv], {'aux':None, 'test':None, 'train':None}),
+                              MapResults([mean], 'value')])
+
+        cv_imputed = MapResults([X_impute, cv], ['X', {'X':None}])
+        cv_imputed.target = True
+
+        transform = lead.model.transform.LeadTransform(inputs=[cv_imputed], **transform_args)
         transform.name = 'transform'
 
         fit = model.Fit(inputs=[estimator, transform], return_estimator=True)
