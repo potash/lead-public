@@ -35,7 +35,7 @@ def bll6_forest_today():
 
     # put the predictions into the database
     tosql = data.ToSQL(table_name='predictions', if_exists='replace',
-            inputs=[MapResults(p, mapping=[{'y':'df', 'feature_importances':None}, 'db'])])
+            inputs=[MapResults([p], mapping=[{'y':'df', 'feature_importances':None}])])
     tosql.target = True
     return tosql
 
@@ -46,7 +46,7 @@ def bll6_forest_quick():
     today = pd.Timestamp(os.environ['TODAY'])
     p = bll6_models(
             forest(),
-            dict(year=today.year, 
+            dict(year=today.year,
                  month=today.month,
                  day=today.day,
                  train_years=1))[0]
@@ -57,14 +57,14 @@ def bll6_forest_quarterly():
     """
     Quarterly forest models
     """
-    return bll6_models(forest(), 
+    return bll6_models(forest(),
         {'month':[1,4,7,10], 'year':range(2010,2014+1)})
 
 def bll6_forest_monthly():
     """
     Monthly forest models
     """
-    return bll6_models(forest(), 
+    return bll6_models(forest(),
         {'month':range(1,13), 'year':range(2010,2014+1)})
 
 def forest():
@@ -115,7 +115,7 @@ def models(estimators, cv_search, transform_search):
     Returns: a list drain.model.Predict steps constructed by taking the product of
         the estimators with the the result of drain.util.dict_product on each of
         cv_search and transform_search.
-        
+
         Each Predict step contains the following in its inputs graph:
             - lead.model.cv.LeadCrossValidate
             - lead.model.transform.LeadTransform
@@ -124,16 +124,16 @@ def models(estimators, cv_search, transform_search):
     steps = []
     for cv_args, transform_args, estimator in product(
             dict_product(cv_search), dict_product(transform_search), estimators):
-   
+
         cv = lead.model.cv.LeadCrossValidate(**cv_args)
         cv.name = 'cv'
         cv.target = True
 
-        X_train = Call('__getitem__', inputs=[MapResults([cv], {'X':'obj', 'train':'key', 
+        X_train = Call('__getitem__', inputs=[MapResults([cv], {'X':'obj', 'train':'key',
                                                        'test':None, 'aux':None})])
         mean = Call('mean', inputs=[X_train])
 
-        X_impute = Construct(data.impute, 
+        X_impute = Construct(data.impute,
                              inputs=[MapResults([cv], {'aux':None, 'test':None, 'train':None}),
                               MapResults([mean], 'value')])
 
@@ -146,7 +146,7 @@ def models(estimators, cv_search, transform_search):
         fit = model.Fit(inputs=[estimator, transform], return_estimator=True)
         fit.name = 'fit'
 
-        y = model.Predict(inputs=[fit, transform], 
+        y = model.Predict(inputs=[fit, transform],
                 return_feature_importances=True)
         y.name = 'predict'
         y.target = True
